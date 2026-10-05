@@ -8,6 +8,7 @@
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 4;
   const DOUBLE_TAP_ZOOM = 2.2;
+  const DESKTOP_ZOOM_STEP = 0.25;
   const pagePath = (n) => `pages/page-${String(n).padStart(2, '0')}.jpg`;
 
   const el = {
@@ -46,9 +47,11 @@
   let panStart = null;
   let pinchStart = null;
   let lastTap = { time: 0, x: 0, y: 0 };
+  let mousePanStart = null;
 
   const isSpread = () => window.matchMedia('(min-width: 901px)').matches;
   const isMobileViewport = () => window.matchMedia('(max-width: 900px)').matches;
+  const isDesktopFullscreen = () => isSpread() && document.fullscreenElement === el.readerShell;
 
   function normalizedSpreadPage(page) {
     if (!isSpread() || page === 1) return page;
@@ -168,7 +171,9 @@
     el.pageStage.style.setProperty('--zoom', zoomScale.toFixed(4));
     el.pageStage.style.setProperty('--pan-x', `${panX.toFixed(2)}px`);
     el.pageStage.style.setProperty('--pan-y', `${panY.toFixed(2)}px`);
+    el.readerCanvas.classList.toggle('desktop-zoom-active', isDesktopFullscreen() && zoomScale > 1.01);
     updateHint();
+    updateDesktopZoomControls();
 
     if (animate) {
       window.setTimeout(() => el.pageStage.classList.remove('zoom-animate'), 220);
@@ -197,6 +202,85 @@
     panY = pointY - (newScale * (pointY - panY) / oldScale);
     zoomScale = newScale;
     applyTransform(animate);
+  }
+
+  let desktopZoomControls = null;
+  let desktopZoomOutBtn = null;
+  let desktopZoomInBtn = null;
+  let desktopZoomValueBtn = null;
+
+  function updateDesktopZoomControls() {
+    if (!desktopZoomControls) return;
+    desktopZoomValueBtn.textContent = `${Math.round(zoomScale * 100)}%`;
+    desktopZoomOutBtn.disabled = zoomScale <= MIN_ZOOM + 0.001;
+    desktopZoomInBtn.disabled = zoomScale >= MAX_ZOOM - 0.001;
+  }
+
+  function setDesktopZoom(targetScale) {
+    if (!isDesktopFullscreen()) return;
+
+    const nextScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, targetScale));
+    if (nextScale <= MIN_ZOOM + 0.001) {
+      resetZoom(true);
+      return;
+    }
+
+    const rect = el.readerCanvas.getBoundingClientRect();
+    zoomAt(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
+      nextScale,
+      true
+    );
+  }
+
+  function buildDesktopZoomControls() {
+    const toolbarActions = document.querySelector('.toolbar-actions');
+    if (!toolbarActions || desktopZoomControls) return;
+
+    desktopZoomControls = document.createElement('div');
+    desktopZoomControls.className = 'desktop-zoom-controls';
+    desktopZoomControls.setAttribute('role', 'group');
+    desktopZoomControls.setAttribute('aria-label', 'Zoom de lectura');
+
+    desktopZoomOutBtn = document.createElement('button');
+    desktopZoomOutBtn.type = 'button';
+    desktopZoomOutBtn.className = 'zoom-btn';
+    desktopZoomOutBtn.textContent = '−';
+    desktopZoomOutBtn.setAttribute('aria-label', 'Alejar');
+    desktopZoomOutBtn.setAttribute('title', 'Alejar');
+
+    desktopZoomValueBtn = document.createElement('button');
+    desktopZoomValueBtn.type = 'button';
+    desktopZoomValueBtn.className = 'zoom-value';
+    desktopZoomValueBtn.textContent = '100%';
+    desktopZoomValueBtn.setAttribute('aria-label', 'Restablecer zoom');
+    desktopZoomValueBtn.setAttribute('title', 'Ajustar a la pantalla');
+
+    desktopZoomInBtn = document.createElement('button');
+    desktopZoomInBtn.type = 'button';
+    desktopZoomInBtn.className = 'zoom-btn';
+    desktopZoomInBtn.textContent = '+';
+    desktopZoomInBtn.setAttribute('aria-label', 'Acercar');
+    desktopZoomInBtn.setAttribute('title', 'Acercar');
+
+    desktopZoomOutBtn.addEventListener('click', () => setDesktopZoom(zoomScale - DESKTOP_ZOOM_STEP));
+    desktopZoomValueBtn.addEventListener('click', () => resetZoom(true));
+    desktopZoomInBtn.addEventListener('click', () => setDesktopZoom(zoomScale + DESKTOP_ZOOM_STEP));
+
+    desktopZoomControls.append(
+      desktopZoomOutBtn,
+      desktopZoomValueBtn,
+      desktopZoomInBtn
+    );
+
+    if (el.fullscreenBtn && el.fullscreenBtn.parentElement === toolbarActions) {
+      toolbarActions.insertBefore(desktopZoomControls, el.fullscreenBtn);
+    } else {
+      toolbarActions.appendChild(desktopZoomControls);
+    }
+
+    updateDesktopZoomControls();
   }
 
   function render(direction = null, preserveZoom = false) {
@@ -384,6 +468,33 @@
     }
   }
 
+  el.readerCanvas.addEventListener('mousedown', (event) => {
+    if (!isDesktopFullscreen() || zoomScale <= 1.01 || event.button !== 0) return;
+
+    event.preventDefault();
+    mousePanStart = {
+      x: event.clientX,
+      y: event.clientY,
+      panX,
+      panY
+    };
+    el.readerCanvas.classList.add('desktop-panning');
+  });
+
+  window.addEventListener('mousemove', (event) => {
+    if (!mousePanStart) return;
+
+    panX = mousePanStart.panX + (event.clientX - mousePanStart.x);
+    panY = mousePanStart.panY + (event.clientY - mousePanStart.y);
+    applyTransform(false);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!mousePanStart) return;
+    mousePanStart = null;
+    el.readerCanvas.classList.remove('desktop-panning');
+  });
+
   el.openReaderBtn.addEventListener('click', openReader);
   el.prevBtn.addEventListener('click', prevPage);
   el.nextBtn.addEventListener('click', nextPage);
@@ -412,6 +523,20 @@
   });
 
   document.addEventListener('keydown', (event) => {
+    if (isDesktopFullscreen() && (event.key === '+' || event.key === '=')) {
+      event.preventDefault();
+      setDesktopZoom(zoomScale + DESKTOP_ZOOM_STEP);
+      return;
+    } else if (isDesktopFullscreen() && event.key === '-') {
+      event.preventDefault();
+      setDesktopZoom(zoomScale - DESKTOP_ZOOM_STEP);
+      return;
+    } else if (isDesktopFullscreen() && event.key === '0') {
+      event.preventDefault();
+      resetZoom(true);
+      return;
+    }
+
     if (event.key === 'Escape' && el.thumbDrawer.classList.contains('open')) {
       closeDrawer();
     } else if (event.key === 'Escape' && focusMode) {
@@ -527,13 +652,19 @@
   }
 
   document.addEventListener('fullscreenchange', () => {
+    mousePanStart = null;
+    el.readerCanvas.classList.remove('desktop-panning');
+
     if (!document.fullscreenElement) {
       el.fullscreenBtn.setAttribute('aria-label', 'Pantalla completa');
       el.fullscreenBtn.setAttribute('title', 'Pantalla completa');
     }
+
+    updateDesktopZoomControls();
     window.setTimeout(() => render(), 80);
   });
 
+  buildDesktopZoomControls();
   buildThumbnails();
   render();
 })();
