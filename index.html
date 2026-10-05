@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#c8102e" />
+  <title>Conexión Sahuayo | Septiembre · Octubre 2026</title>
+  <meta name="description" content="Edición digital de Conexión Sahuayo — Septiembre · Octubre 2026." />
+  <meta property="og:title" content="Conexión Sahuayo | Septiembre · Octubre 2026" />
+  <meta property="og:description" content="Consulta la edición digital de Conexión Sahuayo." />
+  <meta property="og:image" content="https://stratcom2026.github.io/conexion-sahuayo/pages/page-01.jpg" />
+  <meta property="og:url" content="https://stratcom2026.github.io/conexion-sahuayo/" />
+  <meta property="og:type" content="website" />
+  <link rel="preload" as="image" href="pages/page-01.jpg" />
+  <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8M7XT80J57"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8M7XT80J57');
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Conexión Sahuayo, inicio">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span class="brand-copy">
+        <strong>CONEXIÓN</strong>
+        <small>SAHUAYO</small>
+      </span>
+    </a>
+    <span class="edition-pill">SEP · OCT 2026</span>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="hero-copy">
+        <p class="eyebrow">REVISTA DIGITAL</p>
+        <h1>Conexión Sahuayo</h1>
+        <p class="hero-subtitle">Septiembre · Octubre 2026</p>
+        <p class="hero-text">Explora la edición completa en un lector diseñado para computadora, tablet y teléfono. También puedes conservar el PDF original.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="openReaderBtn" type="button">
+            <span>Leer revista</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H5V4Zm14 0h-5a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h5V4Z"/></svg>
+          </button>
+          <a class="btn btn-secondary" href="revista/conexion-sahuayo-sep-oct-2026.pdf" download>
+            <span>Descargar PDF</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg>
+          </a>
+        </div>
+        <div class="hero-meta" aria-label="Datos de la edición">
+          <span><b>34</b> páginas</span>
+          <span class="dot"></span>
+          <span>Lectura adaptable</span>
+          <span class="dot"></span>
+          <span>PDF descargable</span>
+        </div>
+      </div>
+
+      <div class="cover-wrap" aria-label="Portada de la revista">
+        <div class="cover-glow"></div>
+        <img class="cover" src="pages/page-01.jpg" alt="Portada de Conexión Sahuayo, septiembre-octubre 2026" />
+      </div>
+    </section>
+
+    <section class="reader-section" id="revista" aria-labelledby="readerTitle">
+      <div class="reader-heading">
+        <div>
+          <p class="eyebrow">EDICIÓN COMPLETA</p>
+          <h2 id="readerTitle">Lee la revista</h2>
+        </div>
+        <p>Usa las flechas, desliza en móvil o selecciona una página desde el índice.</p>
+      </div>
+
+      <div class="reader-shell" id="readerShell">
+        <div class="reader-toolbar">
+          <div class="toolbar-title">
+            <span class="status-dot"></span>
+            <span>Conexión Sahuayo</span>
+          </div>
+
+          <div class="toolbar-center">
+            <button class="icon-btn" id="prevBtn" type="button" aria-label="Página anterior" title="Anterior">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button class="page-indicator" id="pageIndicator" type="button" aria-label="Abrir índice de páginas">Portada · 1 / 34</button>
+            <button class="icon-btn" id="nextBtn" type="button" aria-label="Página siguiente" title="Siguiente">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+
+          <div class="toolbar-actions">
+            <button class="icon-btn text-icon" id="thumbsBtn" type="button" aria-label="Ver todas las páginas" title="Páginas">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+            </button>
+            <a class="icon-btn" href="revista/conexion-sahuayo-sep-oct-2026.pdf" download aria-label="Descargar PDF" title="Descargar PDF">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg>
+            </a>
+            <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Pantalla completa" title="Pantalla completa">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="reader-canvas" id="readerCanvas" tabindex="0" aria-live="polite">
+          <div class="page-stage" id="pageStage">
+            <figure class="page-slot page-left" id="leftSlot">
+              <img id="leftPage" alt="" draggable="false" />
+            </figure>
+            <figure class="page-slot page-right" id="rightSlot">
+              <img id="rightPage" alt="" draggable="false" />
+            </figure>
+          </div>
+          <div class="swipe-hint" id="swipeHint">Desliza para cambiar de página</div>
+        </div>
+
+        <div class="reader-footer">
+          <span>← → para navegar</span>
+          <span class="footer-sep">•</span>
+          <span>Esc para salir de pantalla completa</span>
+        </div>
+
+        <aside class="thumb-drawer" id="thumbDrawer" aria-hidden="true" aria-label="Índice de páginas">
+          <div class="drawer-head">
+            <div>
+              <strong>Páginas</strong>
+              <span>Selecciona una para ir directamente.</span>
+            </div>
+            <button class="icon-btn" id="closeThumbsBtn" type="button" aria-label="Cerrar índice">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+          </div>
+          <div class="thumb-grid" id="thumbGrid"></div>
+        </aside>
+        <div class="drawer-backdrop" id="drawerBackdrop"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Conexión Sahuayo · Edición septiembre-octubre 2026</span>
+    <span>Vista previa digital</span>
+  </footer>
+
+  <noscript>Este lector requiere JavaScript. Puedes descargar directamente el PDF desde <a href="revista/conexion-sahuayo-sep-oct-2026.pdf">este enlace</a>.</noscript>
+  <script src="js/reader.js"></script>
+  <script>
+    // Evento personalizado: clic en "Leer revista"
+    (function () {
+      var btn = document.getElementById('openReaderBtn');
+      if (btn && typeof gtag === 'function') {
+        btn.addEventListener('click', function () { gtag('event', 'abrir_lector'); });
+      }
+    })();
+  </script>
+</body>
+</html>
