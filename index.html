@@ -8,11 +8,11 @@
   <meta name="description" content="Edición digital de Conexión Sahuayo — Septiembre · Octubre 2026." />
   <meta property="og:title" content="Conexión Sahuayo | Septiembre · Octubre 2026" />
   <meta property="og:description" content="Consulta la edición digital de Conexión Sahuayo." />
-  <meta property="og:image" content="https://stratcom2026.github.io/conexion-sahuayo/pages/page-01.jpg" />
-  <meta property="og:url" content="https://stratcom2026.github.io/conexion-sahuayo/" />
+  <meta property="og:image" content="https://impulsora-sahuayo.github.io/conexion-sahuayo/pages/page-01.jpg" />
+  <meta property="og:url" content="https://impulsora-sahuayo.github.io/conexion-sahuayo/" />
   <meta property="og:type" content="website" />
   <link rel="preload" as="image" href="pages/page-01.jpg" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=20261005-3" />
 
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8M7XT80J57"></script>
@@ -97,9 +97,17 @@
             <button class="icon-btn text-icon" id="thumbsBtn" type="button" aria-label="Ver todas las páginas" title="Páginas">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
             </button>
+
             <a class="icon-btn" href="revista/conexion-sahuayo-sep-oct-2026.pdf" download aria-label="Descargar PDF" title="Descargar PDF">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg>
             </a>
+
+            <div class="desktop-zoom-controls" id="desktopZoomControls" role="group" aria-label="Zoom de lectura">
+              <button class="zoom-btn" id="zoomOutBtn" type="button" aria-label="Alejar" title="Alejar">−</button>
+              <button class="zoom-value" id="zoomResetBtn" type="button" aria-label="Restablecer zoom" title="Ajustar a la pantalla">100%</button>
+              <button class="zoom-btn" id="zoomInBtn" type="button" aria-label="Acercar" title="Acercar">+</button>
+            </div>
+
             <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Pantalla completa" title="Pantalla completa">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
             </button>
@@ -147,7 +155,8 @@
   </footer>
 
   <noscript>Este lector requiere JavaScript. Puedes descargar directamente el PDF desde <a href="revista/conexion-sahuayo-sep-oct-2026.pdf">este enlace</a>.</noscript>
-  <script src="js/reader.js"></script>
+
+  <script src="js/reader.js?v=20261005-3"></script>
   <script>
     // Evento personalizado: clic en "Leer revista"
     (function () {
