@@ -1,9 +1,12 @@
 (() => {
   'use strict';
 
-  const TOTAL_PAGES = 34;
-  const PAGE_WIDTH = 1241;
-  const PAGE_HEIGHT = 1595;
+  const TOTAL_PAGES = 35;
+  const PAGE_WIDTH = 1075;
+  const PAGE_HEIGHT = 1382;
+  const TURN_MS = 820;
+  const SINGLE_TURN_MS = 640;
+  const EDITION_ID = 'nov_dic_2026';
   const SPREAD_GAP = 2;
 
   const MIN_ZOOM = 1;
@@ -12,6 +15,7 @@
   const DESKTOP_ZOOM_STEP = 0.25;
 
   const pagePath = (n) => `pages/page-${String(n).padStart(2, '0')}.jpg`;
+  const thumbPath = (n) => `thumbs/page-${String(n).padStart(2, '0')}.jpg`;
 
   const el = {
     openReaderBtn: document.getElementById('openReaderBtn'),
@@ -49,7 +53,51 @@
   let touchStartX = null;
   let touchStartY = null;
   let touchStartTime = 0;
-  let animationTimer = null;
+  let isTurning = false;
+  let turnSerial = 0;
+  let readingStarted = false;
+  let completionSent = false;
+  const preloadedPages = new Map();
+
+  function track(eventName, fields = {}) {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, { edicion: EDITION_ID, ...fields });
+    }
+  }
+
+  function beginReading(origin) {
+    if (readingStarted) return;
+    readingStarted = true;
+    track('abrir_lector', { origen: origin, total_paginas: TOTAL_PAGES });
+    trackNavigation(pagesForView());
+  }
+
+  function pageReady(n) {
+    if (n < 1 || n > TOTAL_PAGES) return Promise.resolve();
+    if (preloadedPages.has(n)) return preloadedPages.get(n);
+    const promise = new Promise((resolve) => {
+      const img = new Image();
+      img.decoding = 'async';
+      const finish = async () => {
+        try { if (img.decode) await img.decode(); } catch (_) { /* Compatible con imágenes ya cargadas */ }
+        resolve();
+      };
+      img.onload = finish;
+      img.onerror = resolve;
+      img.src = pagePath(n);
+      if (img.complete && img.naturalWidth) finish();
+    });
+    preloadedPages.set(n, promise);
+    return promise;
+  }
+
+  function cancelTurn() {
+    turnSerial += 1;
+    isTurning = false;
+    el.pageStage.querySelectorAll('.flip-leaf').forEach((node) => node.remove());
+    el.readerCanvas.querySelectorAll('.flip-snapshot').forEach((node) => node.remove());
+    el.readerShell.classList.remove('page-is-turning');
+  }
 
   let focusMode = false;
   let savedScrollY = 0;
@@ -72,16 +120,19 @@
 
   function normalizedSpreadPage(page) {
     if (!isSpread() || page === 1) return page;
+    // Si el total es impar, las dos hojas finales quedan separadas.
+    if (TOTAL_PAGES % 2 === 1 && page >= TOTAL_PAGES - 1) return page;
     return page % 2 === 0 ? page : page - 1;
   }
 
-  function pagesForView() {
-    if (!isSpread()) return [currentPage];
-    if (currentPage === 1) return [1];
-
-    const left = normalizedSpreadPage(currentPage);
+  function pagesFor(page) {
+    if (!isSpread() || page === 1) return [page];
+    const left = normalizedSpreadPage(page);
+    if (TOTAL_PAGES % 2 === 1 && left >= TOTAL_PAGES - 1) return [left];
     return left < TOTAL_PAGES ? [left, left + 1] : [left];
   }
+
+  function pagesForView() { return pagesFor(currentPage); }
 
   function setImage(img, slot, pageNumber, single = false) {
     if (!pageNumber) {
@@ -369,68 +420,135 @@
     updateThumbActive();
     prefetchAround();
 
-    if (direction) {
-      clearTimeout(animationTimer);
+    // Las animaciones se realizan antes de renderizar el nuevo estado.
+  }
 
-      el.pageStage.classList.remove(
-        'turn-next',
-        'turn-prev'
-      );
+  function createLeafImage(page) {
+    const img = document.createElement('img');
+    img.src = pagePath(page);
+    img.alt = '';
+    img.draggable = false;
+    return img;
+  }
 
-      void el.pageStage.offsetWidth;
+  function wait(ms) { return new Promise((resolve) => window.setTimeout(resolve, ms)); }
 
-      el.pageStage.classList.add(
-        direction === 'next'
-          ? 'turn-next'
-          : 'turn-prev'
-      );
+  async function animateTurn(targetPage, direction) {
+    if (isTurning || targetPage < 1 || targetPage > TOTAL_PAGES) return;
+    const oldPages = pagesForView();
+    const newPages = pagesFor(targetPage);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion || zoomScale > 1.01) {
+      currentPage = targetPage;
+      render();
+      trackNavigation(newPages);
+      return;
+    }
 
-      animationTimer = setTimeout(() => {
-        el.pageStage.classList.remove(
-          'turn-next',
-          'turn-prev'
-        );
-      }, 380);
+    isTurning = true;
+    const serial = ++turnSerial;
+    el.readerShell.classList.add('page-is-turning');
+    el.prevBtn.disabled = true;
+    el.nextBtn.disabled = true;
+    try {
+      await Promise.all([...new Set([...oldPages, ...newPages])].map(pageReady));
+      if (serial !== turnSerial) return;
+
+      if (isSpread() && oldPages.length === 2 && newPages.length === 2) {
+        const next = direction === 'next';
+        // Mantiene la hoja estacionaria mientras la página gira con frente y reverso.
+        setImage(el.leftPage, el.leftSlot, next ? oldPages[0] : newPages[0]);
+        setImage(el.rightPage, el.rightSlot, next ? newPages[1] : oldPages[1]);
+        const leaf = document.createElement('div');
+        leaf.className = `flip-leaf flip-leaf--${direction}`;
+        const front = document.createElement('div');
+        front.className = 'flip-leaf-face flip-leaf-front';
+        front.appendChild(createLeafImage(next ? oldPages[1] : oldPages[0]));
+        const back = document.createElement('div');
+        back.className = 'flip-leaf-face flip-leaf-back';
+        back.appendChild(createLeafImage(next ? newPages[0] : newPages[1]));
+        leaf.append(front, back);
+        el.pageStage.appendChild(leaf);
+        // Confirmar el estado inicial antes de activar la transición CSS.
+        void leaf.offsetWidth;
+        await new Promise((resolve) => requestAnimationFrame(() => {
+          leaf.classList.add('flip-leaf--active');
+          window.setTimeout(resolve, TURN_MS);
+        }));
+      } else {
+        // Portada, contraportada y lectura móvil: transición de hoja independiente.
+        const stageRect = el.pageStage.getBoundingClientRect();
+        const canvasRect = el.readerCanvas.getBoundingClientRect();
+        const snapshot = document.createElement('div');
+        snapshot.className = `flip-snapshot flip-snapshot--${direction}`;
+        snapshot.style.left = `${stageRect.left - canvasRect.left}px`;
+        snapshot.style.top = `${stageRect.top - canvasRect.top}px`;
+        snapshot.style.width = `${stageRect.width}px`;
+        snapshot.style.height = `${stageRect.height}px`;
+        oldPages.forEach((n) => snapshot.appendChild(createLeafImage(n)));
+        el.readerCanvas.appendChild(snapshot);
+        void snapshot.offsetWidth;
+        currentPage = targetPage;
+        render();
+        await new Promise((resolve) => requestAnimationFrame(() => {
+          snapshot.classList.add('flip-snapshot--active');
+          window.setTimeout(resolve, SINGLE_TURN_MS);
+        }));
+      }
+      if (serial !== turnSerial) return;
+      currentPage = targetPage;
+      render();
+      trackNavigation(newPages);
+    } finally {
+      if (serial === turnSerial) {
+        cancelTurn();
+        render(null, true);
+      }
+    }
+  }
+
+  function trackNavigation(pages) {
+    if (!readingStarted) return;
+    track('cambio_paginas', { pagina_inicial: pages[0], paginas_visibles: pages.join('-'), total_paginas: TOTAL_PAGES });
+    if (!completionSent && pages.includes(TOTAL_PAGES)) {
+      completionSent = true;
+      track('llegar_ultima_pagina', { total_paginas: TOTAL_PAGES });
     }
   }
 
   function nextPage() {
+    if (isTurning) return;
     const pages = pagesForView();
-
     if (pages[pages.length - 1] >= TOTAL_PAGES) return;
-
+    beginReading('navegacion');
+    let target;
     if (isSpread()) {
-      currentPage =
-        currentPage === 1
-          ? 2
-          : currentPage + 2;
-    } else {
-      currentPage += 1;
-    }
-
-    render('next');
+      target = currentPage === 1 ? 2 :
+        (TOTAL_PAGES % 2 === 1 && currentPage >= TOTAL_PAGES - 1
+          ? currentPage + 1 : currentPage + 2);
+    } else target = currentPage + 1;
+    animateTurn(target, 'next');
   }
 
   function prevPage() {
-    if (currentPage <= 1) return;
-
+    if (isTurning || currentPage <= 1) return;
+    beginReading('navegacion');
+    let target;
     if (isSpread()) {
-      currentPage =
-        currentPage <= 2
-          ? 1
-          : currentPage - 2;
-    } else {
-      currentPage -= 1;
-    }
-
-    render('prev');
+      target = (TOTAL_PAGES % 2 === 1 && currentPage === TOTAL_PAGES)
+        ? currentPage - 1 : currentPage <= 2 ? 1 : currentPage - 2;
+    } else target = currentPage - 1;
+    animateTurn(target, 'prev');
   }
 
   function goToPage(n) {
+    beginReading('indice');
+    cancelTurn();
     currentPage = Number(n);
 
     closeDrawer();
     render();
+    trackNavigation(pagesForView());
 
     el.readerCanvas.focus({
       preventScroll: true
@@ -495,7 +613,7 @@
         document.createElement('img');
 
       img.loading = 'lazy';
-      img.src = pagePath(n);
+      img.src = thumbPath(n);
       img.alt = '';
 
       const label =
@@ -638,6 +756,7 @@
   }
 
   function openReader() {
+    beginReading('boton');
     el.readerSection.scrollIntoView({
       behavior: 'smooth',
       block: 'start'
@@ -845,14 +964,20 @@
         event.key === 'Home'
       ) {
         event.preventDefault();
+        cancelTurn();
+        beginReading('teclado');
         currentPage = 1;
         render();
+        trackNavigation(pagesForView());
       } else if (
         event.key === 'End'
       ) {
         event.preventDefault();
+        cancelTurn();
+        beginReading('teclado');
         currentPage = TOTAL_PAGES;
         render();
+        trackNavigation(pagesForView());
       }
     }
   );
@@ -1156,6 +1281,7 @@
     clearTimeout(resizeTimer);
 
     resizeTimer = setTimeout(() => {
+      cancelTurn();
       render(
         null,
         isDesktopReading() || focusMode
@@ -1230,6 +1356,12 @@
       }
     }
   );
+
+  document.querySelectorAll('[data-ga-download]').forEach((link) => {
+    link.addEventListener('click', () => {
+      track('descargar_pdf', { ubicacion: link.dataset.gaDownload, total_paginas: TOTAL_PAGES });
+    });
+  });
 
   buildThumbnails();
   updateDesktopZoomControls();
