@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#c8102e" />
+  <title>Hemeroteca | Conexión Sahuayo</title>
+  <meta name="description" content="Consulta números anteriores de la revista Conexión Sahuayo. Disponible: septiembre–octubre de 2026." />
+  <meta property="og:title" content="Hemeroteca | Conexión Sahuayo" />
+  <meta property="og:description" content="Números anteriores de la revista digital Conexión Sahuayo." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_MX" />
+  <meta property="og:url" content="https://impulsora-sahuayo.github.io/conexion-sahuayo/ediciones/" />
+  <meta property="og:image" content="https://impulsora-sahuayo.github.io/conexion-sahuayo/ediciones/septiembre-octubre-2026/social/preview-sep-oct-2026.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="canonical" href="https://impulsora-sahuayo.github.io/conexion-sahuayo/ediciones/" />
+  <link rel="stylesheet" href="../css/styles.css?v=20261123-2" />
+  <link rel="stylesheet" href="hemeroteca.css?v=20261123-1" />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8M7XT80J57"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-8M7XT80J57', { page_title: 'Hemeroteca | Conexión Sahuayo' });
+  </script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="../" aria-label="Volver a Conexión Sahuayo, edición actual">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span class="brand-copy"><strong>CONEXIÓN</strong><small>SAHUAYO</small></span>
+    </a>
+    <span class="edition-pill">HEMEROTECA</span>
+  </header>
+  <main class="archive-main">
+    <div class="archive-head">
+      <a class="back-current" href="../">← Volver a la edición actual</a>
+      <p class="eyebrow">REVISTA DIGITAL · HISTÓRICO</p>
+      <h1>Números anteriores</h1>
+      <p>Consulta y descarga las ediciones anteriores de Conexión Sahuayo.</p>
+    </div>
+    <section class="archive-catalog" aria-label="Revistas anteriores">
+      <article class="archive-card">
+        <a class="archive-cover" href="septiembre-octubre-2026/" aria-label="Leer septiembre–octubre de 2026">
+          <img src="septiembre-octubre-2026/pages/page-01.jpg" alt="Portada de Conexión Sahuayo septiembre–octubre 2026: Velas y Veladoras" width="1241" height="1595" />
+        </a>
+        <div class="archive-card-text">
+          <p class="archive-overline">EDICIÓN ANTERIOR · No. 4</p>
+          <h2>Septiembre · Octubre 2026</h2>
+          <p>34 páginas. Consulta la revista completa en su lector original o descarga el PDF.</p>
+          <div class="archive-buttons">
+            <a class="btn btn-primary" href="septiembre-octubre-2026/" data-ga-action="abrir_edicion_anterior">Leer revista</a>
+            <a class="btn btn-secondary" href="septiembre-octubre-2026/revista/conexion-sahuayo-sep-oct-2026.pdf" download data-ga-action="descargar_pdf">Descargar PDF</a>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+  <footer class="site-footer"><span>Conexión Sahuayo · Hemeroteca</span><a href="../">Ir a la edición vigente →</a></footer>
+  <script>
+    document.querySelectorAll('[data-ga-action]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (typeof gtag === 'function') {
+          gtag('event', link.getAttribute('data-ga-action'), {
+            edicion: 'sep-oct-2026', ubicacion: 'hemeroteca', total_paginas: 34,
+            transport_type: 'beacon'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
